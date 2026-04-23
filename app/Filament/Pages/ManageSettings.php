@@ -46,6 +46,10 @@ class ManageSettings extends Page implements HasForms
      * saveUploadedFileUsing: chamado ao salvar um novo upload. Persiste o arquivo
      * em storage/app/public/settings e retorna o caminho relativo (string) para o banco.
      */
+    /**
+     * Cria um FileUpload com upload direto para storage/public.
+     * O Filament cuida automaticamente do carregamento (preview) e do salvamento.
+     */
     protected function imageUpload(string $field, string $label, bool $fullSpan = false): FileUpload
     {
         $component = FileUpload::make($field)
@@ -55,35 +59,7 @@ class ManageSettings extends Page implements HasForms
             ->directory('settings')
             ->visibility('public')
             ->imageEditor()
-            ->nullable()
-            ->getUploadedFileUsing(function (FileUpload $component, string|null $file): ?TemporaryUploadedFile {
-                if (!$file || !Storage::disk('public')->exists($file)) {
-                    return null;
-                }
-
-                $path     = Storage::disk('public')->path($file);
-                $mime     = mime_content_type($path) ?: 'image/jpeg';
-                $filename = basename($file);
-
-                return TemporaryUploadedFile::createFromLivewire([
-                    'name'       => $filename,
-                    'tmpFilename' => $filename,
-                    'size'       => Storage::disk('public')->size($file),
-                    'type'       => $mime,
-                    'path'       => $path,
-                    'url'        => Storage::disk('public')->url($file),
-                ]);
-            })
-            ->saveUploadedFileUsing(function (FileUpload $component, TemporaryUploadedFile $file): string {
-                $filename = $file->store('settings', 'public');
-                return $filename;
-            })
-            ->dehydrateStateUsing(function ($state): ?string {
-                if (is_array($state)) {
-                    return array_values($state)[0] ?? null;
-                }
-                return $state ?: null;
-            });
+            ->nullable();
 
         if ($fullSpan) {
             $component->columnSpanFull();
@@ -234,7 +210,8 @@ class ManageSettings extends Page implements HasForms
                     ]),
 
             ])
-            ->statePath('data');
+            ->statePath('data')
+            ->model(SiteSettings::class);
     }
 
     public function save(): void
