@@ -745,9 +745,8 @@
             <a href="/" class="header-logo">
                 @if ($settings->logo)
                     <img src="{{ Storage::url($settings->logo) }}" alt="{{ $settings->nome_site }}">
-                @else
-                    {{ $settings->nome_site }}
                 @endif
+                {{ $settings->nome_site }}
             </a>
 
             {{-- Navegação --}}

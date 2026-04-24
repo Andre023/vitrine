@@ -48,7 +48,8 @@ class ManageSettings extends Page implements HasForms
      */
     /**
      * Cria um FileUpload com upload direto para storage/public.
-     * O Filament cuida automaticamente do carregamento (preview) e do salvamento.
+     * O getUploadedFileUsing garante que imagens já salvas sejam exibidas
+     * corretamente no painel, evitando o spinner infinito de carregamento.
      */
     protected function imageUpload(string $field, string $label, bool $fullSpan = false): FileUpload
     {
@@ -59,7 +60,19 @@ class ManageSettings extends Page implements HasForms
             ->directory('settings')
             ->visibility('public')
             ->imageEditor()
-            ->nullable();
+            ->nullable()
+            ->getUploadedFileUsing(function ($file): ?array {
+                if (!$file || !Storage::disk('public')->exists($file)) {
+                    return null;
+                }
+
+                return [
+                    'name' => basename($file),
+                    'size' => Storage::disk('public')->size($file),
+                    'type' => Storage::disk('public')->mimeType($file) ?: 'image/jpeg',
+                    'url'  => Storage::disk('public')->url($file),
+                ];
+            });
 
         if ($fullSpan) {
             $component->columnSpanFull();
