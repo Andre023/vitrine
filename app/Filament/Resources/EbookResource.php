@@ -82,8 +82,9 @@ class EbookResource extends Resource
                         Forms\Components\FileUpload::make('capa')
                             ->label('Imagem da Capa')
                             ->image()
+                            ->disk('public')
                             ->directory('ebooks/capas')
-                            ->imageEditor()
+                            ->visibility('public')
                             ->required()
                             ->columnSpanFull(),
 
